@@ -9,6 +9,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 # セッションからカートへ遷移する際product識別のためにidをcookieとsessionに登録する
 
+# セッションキーをcartIDとして使用
+
 
 def _cart_id(request):
     cart = request.session.session_key
