@@ -30,9 +30,8 @@ category_choices = (
     ('condition', 'condition'),
 )
 
+
 # テンプレートでの振り分けを簡単にするためにmanagerクラスでカラーとサイズに分けた値を取得する
-
-
 # class VariationManager(models.Manager):
 
 # def colors(self):
@@ -40,8 +39,6 @@ category_choices = (
 
 # def sizes(self):
 # return super(VariationManager, self).filter(variation_choices="size", is_active=True)
-
-# model内でのqueryの発酵によりn+1問題が発生してないか確認する必要性がある
 
 
 class Variation(models.Model):

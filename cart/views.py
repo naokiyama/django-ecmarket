@@ -24,10 +24,11 @@ def _cart_id(request):
 
 def add_cart(request, product_id):
     if request.method == 'POST':
-        color = request.POST['color']
-        size = request.POST['size']
-        logging.debug('color:{}'.format(color))
-        logging.debug('variation:{}'.format(size))
+        for item in request.POST:
+            key = item
+            value = request.POST[key]
+            logging.debug('variation_key{}'.format(key))
+            logging.debug('variation_value:{}'.format(value))
 
     product = Product.objects.get(id=product_id)
     logging.debug('product:{}'.format(product))
