@@ -147,7 +147,7 @@
         <!-- sect-heading -->
 
         <div class="row">
-          {% for product in products %}
+          {% if products %} {% for product in products %}
           <div class="col-md-4">
             <figure class="card card-product-grid">
               <div class="img-wrap">
@@ -172,7 +172,9 @@
               </figcaption>
             </figure>
           </div>
-          {% endfor %}
+          {% endfor %} {% else %}
+          <h2>Not Products</h2>
+          {% endif %}
         </div>
         <!-- row end.// -->
         <!--paginator処理追加-->
