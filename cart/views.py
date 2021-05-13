@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cart, CartItem
-from store.models import Product
+from store.models import Product, Variation
 from django.core.exceptions import ObjectDoesNotExist
 import logging
 
@@ -10,10 +10,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 # セッションキーをcartIDとして使用
 
+# セッション、クッキ-がない場合作成
+
 
 def _cart_id(request):
     cart = request.session.session_key
-    # カートセッションに置いてのでバック方法の確認
     request_attribute = dir(request)
     logging.debug('session_key:{}'.format(cart))
     logging.debug('this is request attributes'.format(request_attribute))
@@ -22,16 +23,25 @@ def _cart_id(request):
     return cart
 
 
+# カートに商品を追加する
 def add_cart(request, product_id):
+
+    product = Product.objects.get(id=product_id)
+    logging.debug('product:{}'.format(product))
+    product_variation = []
     if request.method == 'POST':
         for item in request.POST:
             key = item
             value = request.POST[key]
             logging.debug('variation_key{}'.format(key))
             logging.debug('variation_value:{}'.format(value))
-
-    product = Product.objects.get(id=product_id)
-    logging.debug('product:{}'.format(product))
+            try:
+                variation = Variation.objects.get(
+                    product=product, variation_choices=key, variation_value=value)
+                logging.debug(variation)
+                product_variation.append(variation)
+            except ObjectDoesNotExist:
+                pass
 
     try:
         # セッションとクッキー内のidを使用してマッチするカートアイテムを取得する
@@ -41,12 +51,18 @@ def add_cart(request, product_id):
             cart_id=_cart_id(request)
         )
     cart.save()
-
+    # カートアイテム取得、存在した場合には更新、存在しなかった場合には新規作成
     try:
+        # ！！！存在した場合,別のvariationがpostされた場合に別々の商品として扱う
         cart_item = CartItem.objects.get(
             product=product,
             cart=cart
         )
+        # ManyToManyFieldを使う際はaddを使用
+        if len(product_variation) > 0:
+            for item in product_variation:
+                cart_item.variations.add(item)
+
         cart_item.quantite += 1
         cart_item.save()
     except CartItem.DoesNotExist:
@@ -55,6 +71,9 @@ def add_cart(request, product_id):
             cart=cart,
             quantite=1,
         )
+        if len(product_variation) > 0:
+            for item in product_variation:
+                cart_item.variations.add(item)
         cart_item.save()
     return redirect('cart:cart')
 
