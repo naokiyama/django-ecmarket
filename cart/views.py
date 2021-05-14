@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cart, CartItem
 from store.models import Product, Variation
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -27,18 +28,15 @@ def _cart_id(request):
 def add_cart(request, product_id):
 
     product = Product.objects.get(id=product_id)
-    logging.debug('product:{}'.format(product))
+    # 更新に元の値を保持するためのリスト
     product_variation = []
     if request.method == 'POST':
         for item in request.POST:
             key = item
             value = request.POST[key]
-            logging.debug('variation_key{}'.format(key))
-            logging.debug('variation_value:{}'.format(value))
             try:
                 variation = Variation.objects.get(
                     product=product, variation_choices=key, variation_value=value)
-                logging.debug(variation)
                 product_variation.append(variation)
             except ObjectDoesNotExist:
                 pass
@@ -52,50 +50,73 @@ def add_cart(request, product_id):
         )
     cart.save()
     # カートアイテム取得、存在した場合には更新、存在しなかった場合には新規作成
-    try:
-        # ！！！存在した場合,別のvariationがpostされた場合に別々の商品として扱う
-        cart_item = CartItem.objects.get(
-            product=product,
-            cart=cart
-        )
-        # ManyToManyFieldを使う際はaddを使用
-        if len(product_variation) > 0:
-            for item in product_variation:
-                cart_item.variations.add(item)
+    is_cart_item_exists = CartItem.objects.filter(
+        product=product, cart=cart).exists()
+    """
+    if the cart existing(カートあり): append list
+    if the cart not existing: create
+    """
+    if is_cart_item_exists:
+        cart_item = CartItem.objects.filter(product=product, cart=cart)
+        isexist_list = []  # カート内に追加したプロダクト数
+        id = []  # idを識別子として取得
+        for item in cart_item:
+            exist_variation = item. variations.all()
+            isexist_list.append(list(exist_variation))
+            id.append(item.id)
 
-        cart_item.quantite += 1
-        cart_item.save()
-    except CartItem.DoesNotExist:
+        if product_variation in isexist_list:
+            # list:isexist_list要素とprodcut_variationにマッチするindexを取得
+            index = isexist_list.index(product_variation)
+            item_id = id[index]
+            cart_item = CartItem.objects.get(product=product, id=item_id)
+            cart_item.quantite += 1
+            cart_item.save()
+        else:
+            item = CartItem.objects.create(
+                product=product, cart=cart, quantite=1)
+            if len(product_variation) > 0:
+                item.variations.clear()
+                item.variations.add(*product_variation)
+
+    else:
         cart_item = CartItem.objects.create(
             product=product,
             cart=cart,
             quantite=1,
         )
         if len(product_variation) > 0:
-            for item in product_variation:
-                cart_item.variations.add(item)
-        cart_item.save()
+            cart_item.variations.clear()
+            cart_item.variations.add(*product_variation)
+            cart_item.save()
     return redirect('cart:cart')
 
 
-def sub_cart(request, product_id):
+def sub_cart(request, product_id, cart_item_id):
     product = Product.objects.get(id=product_id)
     cart = Cart.objects.get(cart_id=_cart_id(request))
-    cart_item = CartItem.objects.get(product=product, cart=cart)
-    if cart_item.quantite > 1:
-        cart_item.quantite -= 1
-        cart_item.save()
-    else:
-        cart_item.delete()
-        return redirect('cart:cart')
+    try:
+        cart_item = CartItem.objects.get(
+            product=product, cart=cart, id=cart_item_id)
+        if cart_item.quantite > 1:
+            cart_item.quantite -= 1
+            cart_item.save()
+        else:
+            cart_item.delete()
+            return redirect('cart:cart')
+
+    except ObjectDoesNotExist:
+        pass
+
     return redirect('cart:cart')
 # urlルーティングをする際にurlsで自動的に割り当てられるidとは違い今回はviews側で値の設定を行う
 
 
-def remove_cart(request, product_id):
+def remove_cart(request, product_id, cart_item_id):
     product = get_object_or_404(Product, id=product_id)
     cart = Cart.objects.get(cart_id=_cart_id(request))
-    cart_item = CartItem.objects.get(product=product, cart=cart)
+    cart_item = CartItem.objects.get(
+        product=product, cart=cart, id=cart_item_id)
     cart_item.delete()
     return redirect('cart:cart')
 
