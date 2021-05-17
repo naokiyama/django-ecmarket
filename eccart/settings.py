@@ -1,5 +1,6 @@
 
 
+from django.contrib.messages import constants as messages
 from pathlib import Path
 import os
 
@@ -131,3 +132,15 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'dager',
+    50: 'critical',
+}
+
+# SMTP CONFIG
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'naokiyamaguchi0228@gmail.com'
+EMAIL_HOST_PASSWORD = 'naoki228'
+EMAIL_USE_TLS = True

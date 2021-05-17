@@ -10,6 +10,7 @@
 <!-- ============================ COMPONENT REGISTER   ================================= -->
 	<div class="card mx-auto" style="max-width:520px; margin-top:40px;">
       <article class="card-body">
+	    {% include 'includes/alert.html'%}
 		<header class="mb-4"><h4 class="card-title">Sign up</h4></header>
 		    <form action="{% url 'accounts:register' %}" method="POST">
 		    {% csrf_token %}
@@ -51,13 +52,11 @@
 			    <div class="form-group">
 			        <button type="submit" class="btn btn-primary btn-block"> Register  </button>
 			    </div> <!-- form-group// -->
-				{{ forms.email.errors }}
-				{{ forms.non_field_errors }}
 			        
 			</form>
 		</article><!-- card-body.// -->
     </div> <!-- card .// -->
-    <p class="text-center mt-4">Have an account? <a href="">Log In</a></p>
+    <p class="text-center mt-4">Have an account? <a href="{% url 'accounts:login' %}">Log In</a></p>
     <br><br>
 <!-- ============================ COMPONENT REGISTER  END.// ================================= -->
 
