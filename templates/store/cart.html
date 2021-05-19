@@ -48,7 +48,7 @@
 					<div class="col"> 
 						<div class="input-group input-spinner">
 							<div class="input-group-prepend">
-							<a href="{% url 'cart:sub_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
+							<a href="{% url 'cart:sub_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-minus"> <i class="fa fa-minus"></i> </a>
 							</div>
 							<input type="text" class="form-control"  value="{{cart_item.quantite}}">
 							<div class="input-group-append">
@@ -57,7 +57,7 @@
 							{% for item in cart_item.variation.all %}
 							    <input type="hidden" name="{{ item.variation_choices }}" value="{{ item.variation_value | capfirst }}">
 							{% endfor %}
-							<a href="{% url 'cart:add_cart' cart_item.product.id %}" class="btn btn-light" type="button" id="button-minus"> <i class="fa fa-plus"></i> </a>
+							<a href="{% url 'cart:plus_cart' cart_item.product.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-plus"></i> </a>
 							</form>
 							</div>
 						</div> <!-- input-group.// -->
@@ -100,12 +100,12 @@
 			<p class="text-center mb-3">
 				<img src="./images/misc/payments.png" height="26">
 			</p>
-			<a href="./place-order.html" class="btn btn-primary btn-block"> Checkout </a>
+			<a href="{% url 'cart:checkout' %}" class="btn btn-primary btn-block"> Checkout </a>
 			<a href="./store.html" class="btn btn-light btn-block">Continue Shopping</a>
 		</div> <!-- card-body.// -->
 		</div> <!-- card.// -->
 
-</aside> <!-- col.// -->
+    </aside> <!-- col.// -->
 
 
 </div> <!-- row.// -->

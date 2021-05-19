@@ -6,7 +6,7 @@ from django.contrib.auth.admin import UserAdmin
 
 class AccountsAdmin(UserAdmin):
     list_display = ('first_name', 'last_name', 'username',
-                    'email', 'data_joined', 'last_login', 'is_active')
+                    'email', 'phone_number', 'data_joined', 'last_login', 'is_active')
 
     filter_horizontal = ()
     list_filter = ()

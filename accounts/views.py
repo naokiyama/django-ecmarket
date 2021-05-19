@@ -2,11 +2,13 @@ from django.http.response import HttpResponseBase
 from django.shortcuts import render, redirect
 from . import forms
 from .models import Accounts
+from cart.views import _cart_id
+from cart.models import Cart, CartItem
 from django.contrib import auth
-from django.contrib import messages
+from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 
-from django.http import HttpResponse
+from cart.views import _cart_id
 # verification email
 
 from django.contrib.sites.shortcuts import get_current_site
@@ -18,7 +20,7 @@ from django.core.mail import EmailMessage
 
 import logging
 
-import accounts
+
 # Create your views here.
 logging.basicConfig(level=logging.DEBUG)
 
@@ -75,7 +77,45 @@ def login(request):
         user = auth.authenticate(email=email, password=password)
         logging.debug('User who have successfully logged in:{}'.format(user))
         if user is not None:
+            try:
+                cart = Cart.objects.get(cart_id=_cart_id(request))
+                is_cart_item_exists = CartItem.objects.filter(
+                    cart=cart).exists()
+                if is_cart_item_exists:
+                    logging.debug('cart items exists')
+                    cart_item = CartItem.objects.filter(cart=cart)
+                    product_variation = []
+                    for item in cart_item:
+                        variation = item.variations.all()
+                        product_variation.append(list(variation))
+
+                    cart_item = CartItem.objects.filter(user=user)
+                    is_exist_product = []
+                    id = []
+                    for item in cart_item:
+                        exist_variations = item.variations.all()
+                        is_exist_product.append(list(exist_variations))
+                        id.append(item.id)
+
+                    for pv in product_variation:
+                        if pv in is_exist_product:
+                            index = is_exist_product.index(pv)
+                            item_id = id[index]
+                            cart_item = CartItem.objects.get(id=item_id)
+                            cart_item.quantite += 1
+                            cart_item.save()
+                        else:
+                            cart_item = CartItem.objects.create(
+                                cart=cart
+                            )
+                            for item in cart_item:
+                                item.user = user
+                                item.save()
+            except:
+                logging.debug('except block')
+                pass
             auth.login(request, user)
+            messages.error(request, 'You are log in succesful')
             return redirect('home')
         else:
             messages.error(request, 'Invalide login credential')
@@ -109,7 +149,7 @@ def activate(request, uidb64, token):
         return redirect('accounts:register')
 
 
-@ login_required(login_url='accounts:dashboard')
+@login_required(login_url='accounts:login')
 def dashboard(request):
     return render(request, 'account-form/dashboard.html')
 
