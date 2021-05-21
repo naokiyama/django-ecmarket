@@ -1,4 +1,3 @@
-from django.http.response import HttpResponseBase
 from django.shortcuts import render, redirect
 from . import forms
 from .models import Accounts
@@ -8,7 +7,6 @@ from django.contrib import auth
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 
-from cart.views import _cart_id
 # verification email
 
 from django.contrib.sites.shortcuts import get_current_site
@@ -18,6 +16,7 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 
+import requests
 import logging
 
 
@@ -115,8 +114,17 @@ def login(request):
                 logging.debug('except block')
                 pass
             auth.login(request, user)
-            messages.error(request, 'You are log in succesful')
-            return redirect('home')
+            messages.success(request, 'You are now logged in')
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url)
+                params = dict(x.split('=') for x in query.split('&'))
+                if 'next' in params:
+                    nextPage = params['next']
+                    return redirect(nextPage)
+                return redirect('accounts:dashboard')
+            except:
+                return redirect('accounts:dashboard')
         else:
             messages.error(request, 'Invalide login credential')
             return redirect('accounts:login')
@@ -160,7 +168,7 @@ def forgotPassword(request):
         email = request.POST['email']
         if Accounts.objects.filter(email__exact=email).exists():
             user = Accounts.objects.get(email__exact=email)
-            logging.debug('user SQLStatement:{}'.format(user))
+
             current_site = get_current_site(request)
             subject = 'Change your password'
             message = render_to_string('account-form/password_reset_email.html', {

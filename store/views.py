@@ -9,6 +9,8 @@ import logging
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+# todo
+# stockが0以下になった場合の非表示処理とメッサージ表示を行う必要がある
 # Create your views here.
 
 logging.basicConfig(level=logging.DEBUG)

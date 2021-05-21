@@ -5,6 +5,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 import logging
 
+# todo
+# 在庫数がなくなったら表示しない
+
 logging.basicConfig(level=logging.DEBUG)
 
 # セッションからカートへ遷移する際product識別のためにidをcookieとsessionに登録する
@@ -254,8 +257,8 @@ def cart(request, total=0, quantite=0, cart_items=None):
             logging.debug('cart information:{}'.format(cart))
 
         for cart_item in cart_items:
-            total = + cart_item.product.price * cart_item.quantite
-            quantite = + cart_item.quantite
+            total += cart_item.product.price * cart_item.quantite
+            quantite += cart_item.quantite
         tax = (2 * total)/100
         grand_total = total + tax
     except ObjectDoesNotExist:
@@ -283,8 +286,8 @@ def checkout(request, total=0, quantite=0, cart_items=None):
             cart_items = CartItem.objects.filter(cart=cart, is_active=True)
 
         for cart_item in cart_items:
-            total = + cart_item.product.price * cart_item.quantite
-            quantite = + cart_item.quantite
+            total += cart_item.product.price * cart_item.quantite
+            quantite += cart_item.quantite
         '''
         各国の税率をそれぞれ適用する場合におけ条件分岐
         if country == 'america':
